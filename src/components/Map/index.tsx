@@ -1,5 +1,7 @@
 import { useRouter } from 'next/router'
-import { MapContainer as LeafletMap, Marker, TileLayer } from 'react-leaflet'
+import { MapConsumer, MapContainer, Marker, TileLayer } from 'react-leaflet'
+
+import * as S from './styles'
 
 type Place = {
   id: string
@@ -37,30 +39,50 @@ const Map = ({ places }: MapProps) => {
   const router = useRouter()
 
   return (
-    <LeafletMap
-      style={{ width: '100%', height: '100%' }}
-      center={[0, 0]}
-      zoom={3}
-      scrollWheelZoom={true}
-    >
-      <CustomTileLayer />
-      {places?.map(({ id, name, slug, location }) => {
-        const { latitude, longitude } = location
-        return (
-          <Marker
-            key={`place-${id}`}
-            position={[latitude, longitude]}
-            // position={[51.50853, -0.12574]} londres
-            eventHandlers={{
-              click: () => {
-                router.push(`/place/${slug}`)
-              }
-            }}
-            title={name}
-          />
-        )
-      })}
-    </LeafletMap>
+    <S.MapWrapper>
+      <MapContainer
+        style={{ width: '100%', height: '100%' }}
+        center={[0, 0]}
+        zoom={3}
+        scrollWheelZoom={true}
+        maxBounds={[
+          [-180, 180],
+          [180, -180]
+        ]}
+      >
+        <MapConsumer>
+          {(map) => {
+            const width =
+              window.innerWidth ||
+              document.documentElement.clientWidth ||
+              document.body.clientWidth
+
+            if (width < 768) {
+              map.setMinZoom(2)
+            }
+
+            return null
+          }}
+        </MapConsumer>
+        <CustomTileLayer />
+        {places?.map(({ id, name, slug, location }) => {
+          const { latitude, longitude } = location
+          return (
+            <Marker
+              key={`place-${id}`}
+              position={[latitude, longitude]}
+              // position={[51.50853, -0.12574]} londres
+              eventHandlers={{
+                click: () => {
+                  router.push(`/place/${slug}`)
+                }
+              }}
+              title={name}
+            />
+          )
+        })}
+      </MapContainer>
+    </S.MapWrapper>
   )
 }
 
